@@ -1015,9 +1015,19 @@ class ScubaDiverBoss {
                 this.justDefeated = true; // Flag for golden heart spawn
             }
         } else if (this.state === 'retreating') {
-            this.y -= 3;
-            if (this.y < -200) {
-                return true; // Boss defeated
+            // Continue updating attacks while retreating
+            this.netAttacks = this.netAttacks.filter(net => !net.isOffScreen());
+            this.netAttacks.forEach(net => net.update());
+
+            // Only move up and check for completion after all attacks are gone or far enough
+            const allAttacksPassed = this.netAttacks.length === 0 ||
+                                     this.netAttacks.every(net => net.x < -100);
+
+            if (allAttacksPassed) {
+                this.y -= 3;
+                if (this.y < -200) {
+                    return true; // Boss defeated
+                }
             }
         }
 
@@ -1259,9 +1269,19 @@ class DolphinBoss {
                 this.justDefeated = true; // Flag for golden heart spawn
             }
         } else if (this.state === 'retreating') {
-            this.y -= 3;
-            if (this.y < -200) {
-                return true; // Boss defeated
+            // Continue updating attacks while retreating
+            this.whirlpoolAttacks = this.whirlpoolAttacks.filter(whirlpool => !whirlpool.isOffScreen());
+            this.whirlpoolAttacks.forEach(whirlpool => whirlpool.update());
+
+            // Only move up and check for completion after all attacks are gone or far enough
+            const allAttacksPassed = this.whirlpoolAttacks.length === 0 ||
+                                     this.whirlpoolAttacks.every(whirlpool => whirlpool.x < -100);
+
+            if (allAttacksPassed) {
+                this.y -= 3;
+                if (this.y < -200) {
+                    return true; // Boss defeated
+                }
             }
         }
 
@@ -1682,11 +1702,13 @@ class Game {
         if (this.bossActive && this.boss) {
             const bossDefeated = this.boss.update(this);
 
-            // Spawn golden heart when boss is first defeated (before retreating)
+            // Spawn golden heart when boss is first defeated (25% drop rate)
             if (this.boss && this.boss.justDefeated && !this.goldenHeart) {
-                const bossX = this.boss.x;
-                const bossY = this.boss.y + this.boss.height / 2;
-                this.goldenHeart = new GoldenHeart(bossX, bossY);
+                if (Math.random() < 0.25) { // 25% chance
+                    const bossX = this.boss.x;
+                    const bossY = this.boss.y + this.boss.height / 2;
+                    this.goldenHeart = new GoldenHeart(bossX, bossY);
+                }
                 this.boss.justDefeated = false; // Reset flag
             }
 
@@ -1864,8 +1886,8 @@ class Game {
 
                 // More aggressively increase difficulty every 2 points
                 if (this.score % 2 === 0 && this.score > 0) {
-                    this.difficulty = Math.min(12, this.difficulty + 1);
-                    this.basePipeSpeed = Math.min(3.5, 2.2 + this.difficulty * 0.12); // Adjusted from 1.8 base
+                    this.difficulty = Math.min(20, this.difficulty + 1);
+                    this.basePipeSpeed = Math.min(5.0, 2.2 + this.difficulty * 0.15); // Higher max speed
                     if (!this.activePowerUp || (this.activePowerUp !== 'slow' && this.activePowerUp !== 'star')) {
                         this.pipeSpeed = this.basePipeSpeed;
                     }
