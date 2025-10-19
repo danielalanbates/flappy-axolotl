@@ -718,7 +718,7 @@ class GoldenHeart {
 class Mermaid {
     constructor(powerUpType) {
         this.x = canvas.width + 50;
-        this.y = 100 + Math.random() * 300;
+        this.y = 100 + Math.random() * 250; // Reduced range to avoid bottom
         this.speed = 3;
         this.width = 50;
         this.height = 70;
@@ -966,8 +966,8 @@ class Mermaid {
     }
 
     shouldDropPowerUp(playerX) {
-        // Drop power-up much further ahead so player has to chase it
-        return !this.hasDroppedPowerUp && (this.x - playerX) < 250 && (this.x - playerX) > 180;
+        // Drop power-up closer to player
+        return !this.hasDroppedPowerUp && (this.x - playerX) < 150 && (this.x - playerX) > 80;
     }
 }
 
@@ -1432,8 +1432,8 @@ class Net {
     constructor(x, y) {
         this.x = x;
         this.y = y;
-        this.width = 50;
-        this.height = 50;
+        this.width = 35;
+        this.height = 35;
         this.speed = 1.5; // Nets slowly move towards axolotl
         this.rotation = 0;
         this.deployTime = Date.now();
@@ -1800,7 +1800,9 @@ class Game {
 
             // Drop power-up when close to player
             if (this.mermaid.shouldDropPowerUp(this.bird.x)) {
-                this.powerUps.push(new PowerUp(this.mermaid.x, this.mermaid.y + 30, this.mermaid.powerUpType));
+                // Clamp powerup y position to avoid ground/seaweed (max y = 450)
+                const powerupY = Math.min(this.mermaid.y + 30, 450);
+                this.powerUps.push(new PowerUp(this.mermaid.x, powerupY, this.mermaid.powerUpType));
                 this.mermaid.hasDroppedPowerUp = true;
                 playSound(700, 0.2);
             }
