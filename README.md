@@ -2,6 +2,23 @@
 
 A charming underwater Flappy Bird-style game featuring a realistic pink axolotl swimming through an SNES-inspired ocean environment. Built with HTML5 Canvas and vanilla JavaScript.
 
+## 🎮 [Play Now in Browser!](https://YOUR-USERNAME.github.io/flappy-axolotl/)
+
+## 💾 Download Desktop App
+
+**No installation needed - just download and play!**
+
+### Windows
+- [Download Installer](https://github.com/YOUR-USERNAME/flappy-axolotl/releases/latest/download/Flappy.Axolotl.Setup.1.0.0.exe) (Recommended)
+- [Download Portable](https://github.com/YOUR-USERNAME/flappy-axolotl/releases/latest/download/Flappy.Axolotl.1.0.0.exe) (No install, run directly)
+
+### macOS
+- [Download DMG](https://github.com/YOUR-USERNAME/flappy-axolotl/releases/latest/download/Flappy.Axolotl-1.0.0.dmg)
+
+### Linux
+- [Download AppImage](https://github.com/YOUR-USERNAME/flappy-axolotl/releases/latest/download/Flappy.Axolotl-1.0.0.AppImage) (Universal)
+- [Download .deb](https://github.com/YOUR-USERNAME/flappy-axolotl/releases/latest/download/flappy-axolotl_1.0.0_amd64.deb) (Debian/Ubuntu)
+
 ## 🎮 How to Play
 
 - **Click or tap** to make the axolotl swim upward

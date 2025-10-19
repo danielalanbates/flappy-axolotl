@@ -23,3 +23,21 @@ npm-debug.log*
 
 # Temporary files
 *.tmp
+
+# Node modules and dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build output
+dist/
+build/
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.zip
+*.tar.gz
+
+# Electron builder output
+out/
