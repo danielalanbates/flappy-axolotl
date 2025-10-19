@@ -1,0 +1,9 @@
+{
+    "name": "Flappy Axolotl",
+    "short_name": "FlappyAxolotl",
+    "description": "A fun Flappy Bird style game featuring an adorable axolotl",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#70c5ce",
+    "theme_color": "#70c5ce"
+}

@@ -1,0 +1,12 @@
+{
+    "gravity": 0.6,
+    "jumpStrength": -12,
+    "pipeSpeed": 2,
+    "pipeGap": 150,
+    "birdColor": "pink",
+    "pipeColor": "green",
+    "backgroundColor": "#70c5ce",
+    "groundColor": "#deb887",
+    "canvasWidth": 400,
+    "canvasHeight": 600
+}

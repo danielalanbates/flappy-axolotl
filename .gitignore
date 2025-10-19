@@ -1,0 +1,25 @@
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Claude Code settings
+.claude/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*_old.*
+*_new.*
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
