@@ -1222,8 +1222,10 @@ class ScubaDiverBoss {
     }
 
     takeDamage() {
-        this.health--;
-        playSound(150, 0.3);
+        if (this.health > 0) {
+            this.health--;
+            playSound(150, 0.3);
+        }
     }
 }
 
@@ -1273,13 +1275,13 @@ class DolphinBoss {
             this.whirlpoolAttacks = this.whirlpoolAttacks.filter(whirlpool => !whirlpool.isOffScreen());
             this.whirlpoolAttacks.forEach(whirlpool => whirlpool.update());
 
-            // Only move up and check for completion after all attacks are gone or far enough
+            // Only swim away after all attacks are gone or far enough
             const allAttacksPassed = this.whirlpoolAttacks.length === 0 ||
                                      this.whirlpoolAttacks.every(whirlpool => whirlpool.x < -100);
 
             if (allAttacksPassed) {
-                this.y -= 3;
-                if (this.y < -200) {
+                this.x += 5; // Dolphin swims away to the right
+                if (this.x > canvas.width + 200) {
                     return true; // Boss defeated
                 }
             }
@@ -1423,8 +1425,256 @@ class DolphinBoss {
     }
 
     takeDamage() {
-        this.health--;
-        playSound(150, 0.3);
+        if (this.health > 0) {
+            this.health--;
+            playSound(150, 0.3);
+        }
+    }
+}
+
+class GiantWormBoss {
+    constructor() {
+        this.x = canvas.width + 50;
+        this.y = canvas.height / 2;
+        this.width = 100;
+        this.height = 120;
+        this.health = 10; // Final boss has more health
+        this.maxHealth = 10;
+        this.state = 'entering'; // 'entering', 'attacking', 'retreating'
+        this.segments = []; // Worm body segments
+        this.attackTimer = 0;
+        this.animFrame = 0;
+        this.mouthOpen = false;
+
+        // Initialize worm segments
+        for (let i = 0; i < 5; i++) {
+            this.segments.push({
+                x: this.x + (i * 25),
+                y: this.y,
+                offset: i * 0.5
+            });
+        }
+    }
+
+    update(game) {
+        this.animFrame += 0.1;
+        this.attackTimer++;
+
+        if (this.state === 'entering') {
+            this.x -= 2; // Move from right to left
+            // Update segments to follow
+            for (let i = 0; i < this.segments.length; i++) {
+                this.segments[i].x -= 2;
+            }
+            if (this.x <= canvas.width - 150) {
+                this.state = 'attacking';
+            }
+        } else if (this.state === 'attacking') {
+            // Worm undulates up and down
+            this.y += Math.sin(this.animFrame) * 3;
+
+            // Update segments to create slithering effect
+            for (let i = 0; i < this.segments.length; i++) {
+                this.segments[i].y = this.y + Math.sin(this.animFrame + this.segments[i].offset) * 15;
+            }
+
+            // Open and close mouth rhythmically
+            this.mouthOpen = Math.sin(this.animFrame * 3) > 0;
+
+            // Lunge attack - worm lunges toward player periodically
+            if (this.attackTimer % 180 === 0) {
+                this.x -= 150; // Quick lunge
+            } else if (this.attackTimer % 180 > 0 && this.attackTimer % 180 < 30) {
+                this.x += 5; // Retreat back slowly
+            }
+
+            // Check if defeated
+            if (this.health <= 0) {
+                this.state = 'retreating';
+                this.justDefeated = true; // Flag for victory cinematic
+            }
+        } else if (this.state === 'retreating') {
+            // Worm defeated - sink down
+            this.y += 2;
+            for (let i = 0; i < this.segments.length; i++) {
+                this.segments[i].y += 2;
+            }
+            if (this.y > canvas.height + 200) {
+                return true; // Boss defeated - trigger ending
+            }
+        }
+
+        return false;
+    }
+
+    draw() {
+        // Draw worm segments (body)
+        for (let i = this.segments.length - 1; i >= 0; i--) {
+            const seg = this.segments[i];
+            const radius = 15 - (i * 2); // Segments get smaller toward tail
+
+            // Segment body
+            ctx.fillStyle = '#d4869c'; // Pink worm
+            ctx.beginPath();
+            ctx.arc(seg.x, seg.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Segment rings
+            ctx.strokeStyle = '#c96885';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(seg.x, seg.y, radius - 3, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // Draw worm head
+        ctx.fillStyle = '#d4869c';
+        ctx.beginPath();
+        ctx.ellipse(this.x, this.y, this.width / 2, this.height / 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Draw mouth
+        if (this.mouthOpen) {
+            ctx.fillStyle = '#4a2f3a';
+            ctx.beginPath();
+            ctx.ellipse(this.x - 20, this.y, 25, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Teeth
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < 8; i++) {
+                const angle = (i / 8) * Math.PI * 2;
+                const tx = this.x - 20 + Math.cos(angle) * 20;
+                const ty = this.y + Math.sin(angle) * 15;
+                ctx.fillRect(tx - 2, ty - 5, 4, 10);
+            }
+        }
+
+        // Draw eyes
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(this.x + 10, this.y - 20, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(this.x + 10, this.y + 20, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Eye shine
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(this.x + 12, this.y - 18, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(this.x + 12, this.y + 22, 3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Health bar
+        const barWidth = 100;
+        const barHeight = 8;
+        const healthPercent = this.health / this.maxHealth;
+
+        ctx.fillStyle = '#ff0000';
+        ctx.fillRect(this.x - barWidth/2, this.y - 70, barWidth, barHeight);
+        ctx.fillStyle = '#00ff00';
+        ctx.fillRect(this.x - barWidth/2, this.y - 70, barWidth * healthPercent, barHeight);
+        ctx.strokeStyle = '#ffffff';
+        ctx.strokeRect(this.x - barWidth/2, this.y - 70, barWidth, barHeight);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`FINAL BOSS: ${this.health}/${this.maxHealth}`, this.x, this.y - 75);
+        ctx.textAlign = 'start';
+    }
+
+    isCollidingWithBird(bird) {
+        // Check collision with head
+        const dx = bird.x - this.x;
+        const dy = bird.y - this.y;
+        if (Math.sqrt(dx * dx + dy * dy) < (this.width / 2 + bird.radius)) {
+            return true;
+        }
+
+        // Check collision with segments
+        for (let seg of this.segments) {
+            const sdx = bird.x - seg.x;
+            const sdy = bird.y - seg.y;
+            if (Math.sqrt(sdx * sdx + sdy * sdy) < (15 + bird.radius)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    takeDamage() {
+        if (this.health > 0) {
+            this.health--;
+            playSound(150, 0.3);
+        }
+    }
+}
+
+class FloatingWorm {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.width = 60;
+        this.height = 15;
+        this.speed = 2; // Moves left with game flow
+        this.animFrame = Math.random() * Math.PI * 2; // Random start for animation
+        this.wobbleSpeed = 0.05 + Math.random() * 0.05;
+        this.wobbleAmount = 3 + Math.random() * 3;
+        this.collected = false; // Prevent multiple collections
+    }
+
+    update() {
+        this.x -= this.speed;
+        this.animFrame += this.wobbleSpeed;
+    }
+
+    draw() {
+        ctx.save();
+
+        // Draw worm body (multiple segments for wiggly effect)
+        const segments = 8;
+        const segmentWidth = this.width / segments;
+
+        for (let i = 0; i < segments; i++) {
+            const segX = this.x + (i * segmentWidth);
+            const wobble = Math.sin(this.animFrame + i * 0.5) * this.wobbleAmount;
+            const segY = this.y + wobble;
+
+            // Worm segment
+            ctx.fillStyle = '#d4869c'; // Pink worm color
+            ctx.beginPath();
+            ctx.ellipse(segX, segY, segmentWidth / 2, this.height / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Segment ring
+            ctx.strokeStyle = '#c96885';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.ellipse(segX, segY, segmentWidth / 2 - 2, this.height / 2 - 2, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        ctx.restore();
+    }
+
+    isOffScreen() {
+        return this.x + this.width < 0;
+    }
+
+    collidesWith(bird) {
+        // Worm is centered at this.y, need to account for wobble
+        const wormTop = this.y - this.height / 2 - this.wobbleAmount;
+        const wormBottom = this.y + this.height / 2 + this.wobbleAmount;
+
+        return this.x < bird.x + bird.width &&
+               this.x + this.width > bird.x &&
+               wormTop < bird.y + bird.height &&
+               wormBottom > bird.y;
     }
 }
 
@@ -1608,7 +1858,7 @@ class Game {
     constructor() {
         this.bird = new Bird(50, 300);
         this.pipes = [];
-        this.score = 0;
+        this.score = 390; // Start at worm zone for testing
         this.highScore = parseInt(localStorage.getItem('flappyAxolotlHighScore')) || 0;
         this.highScores = this.loadHighScores();
         this.state = 'start'; // 'start', 'playing', 'gameover', 'enterInitials'
@@ -1646,6 +1896,12 @@ class Game {
         this.bossCount = 0;
         this.persistentNets = []; // Nets that stay after boss leaves
         this.persistentWhirlpools = []; // Whirlpools that stay after boss leaves
+
+        // Worm zone (scores 390-399) and victory
+        this.floatingWorms = [];
+        this.wormSpawnTimer = 0;
+        this.victoryTriggered = false;
+        this.cinematicTimer = 0;
 
         // Power-up effects
         this.hasStar = false;
@@ -1687,8 +1943,49 @@ class Game {
             }
         }
 
-        // Boss level trigger (every 20 points)
-        if (this.score > 0 && this.score % 20 === 0 && !this.bossActive && !this.bossDefeated) {
+        // Worm zone (scores 390-399) - spawn lots of floating worms
+        if (this.score >= 390 && this.score < 400) {
+            this.wormSpawnTimer++;
+            // Spawn worms frequently
+            if (this.wormSpawnTimer % 30 === 0) {
+                const wormY = 100 + Math.random() * 400; // Random height
+                this.floatingWorms.push(new FloatingWorm(canvas.width + 60, wormY));
+                console.log('Spawned worm at', wormY, 'Total worms:', this.floatingWorms.length);
+            }
+        } else if (this.score >= 400) {
+            // Trigger victory cinematic at score 400
+            if (!this.victoryTriggered) {
+                this.victoryTriggered = true;
+                this.state = 'victory';
+                this.cinematicTimer = 0;
+            }
+            // Clear worms once we pass the zone
+            this.floatingWorms = [];
+            this.wormSpawnTimer = 0;
+        }
+
+        // Update floating worms
+        this.floatingWorms.forEach(worm => {
+            worm.update();
+            if (worm.collidesWith(this.bird) && !worm.collected) {
+                console.log('WORM COLLECTED! Hearts before:', this.hearts);
+                // Eating worms gives health!
+                worm.collected = true;
+                if (this.hearts < this.maxHearts) {
+                    this.hearts++;
+                    console.log('Hearts after:', this.hearts);
+                    playSound(600, 0.2); // Happy eating sound
+                } else {
+                    console.log('Already at max hearts');
+                    playSound(400, 0.1); // Already full sound
+                }
+            }
+        });
+        // Remove collected and off-screen worms
+        this.floatingWorms = this.floatingWorms.filter(worm => !worm.collected && !worm.isOffScreen());
+
+        // Boss level trigger (every 20 points, but not at 400 - that's victory)
+        if (this.score > 0 && this.score % 20 === 0 && this.score < 400 && !this.bossActive && !this.bossDefeated) {
             this.bossActive = true;
             // Alternate between diver and dolphin bosses
             if (this.bossCount % 2 === 0) {
@@ -1741,6 +2038,13 @@ class Game {
                         }
                     }
                 });
+            } else if (this.boss instanceof GiantWormBoss) {
+                // Check worm body collision
+                if (this.boss.isCollidingWithBird(this.bird)) {
+                    if (!this.hasStar) {
+                        this.takeDamage();
+                    }
+                }
             }
 
             if (bossDefeated) {
@@ -1970,9 +2274,12 @@ class Game {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
         // Draw background elements by layer (parallax effect)
+        // Skip seaweed during worm zone (scores 390-399)
+        const inWormZone = this.score >= 390 && this.score < 400;
         for (let layer = 0; layer < 3; layer++) {
             this.backgroundElements
                 .filter(el => el.layer === layer)
+                .filter(el => !(inWormZone && el.type === 'seaweed')) // Hide seaweed in worm zone
                 .forEach(element => element.draw());
         }
 
@@ -2025,6 +2332,13 @@ class Game {
 
         // Draw persistent whirlpools
         this.persistentWhirlpools.forEach(whirlpool => whirlpool.draw());
+
+        // Draw floating worms (worm zone 390-399)
+        this.floatingWorms.forEach(worm => {
+            if (!worm.collected) {
+                worm.draw();
+            }
+        });
 
         // Draw bird with star power effect
         if (this.hasStar) {
@@ -2144,6 +2458,8 @@ class Game {
             this.drawInitialEntry();
         } else if (this.state === 'showScoreboard') {
             this.drawScoreboard();
+        } else if (this.state === 'victory') {
+            this.drawVictoryCinematic();
         }
     }
 
@@ -2324,6 +2640,164 @@ class Game {
         ctx.textAlign = 'start';
     }
 
+    drawVictoryCinematic() {
+        // Increment cinematic timer
+        this.cinematicTimer++;
+
+        // Fade to black background
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Center position
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+
+        // Draw close-up of happy axolotl face
+        const faceSize = 200;
+        const faceX = centerX;
+        const faceY = centerY - 20;
+
+        // Axolotl head (large pink circle)
+        ctx.fillStyle = '#ffb3d9';
+        ctx.beginPath();
+        ctx.arc(faceX, faceY, faceSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Happy closed eyes (big smile eyes)
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 4;
+        // Left eye
+        ctx.beginPath();
+        ctx.arc(faceX - 40, faceY - 20, 15, 0.2, Math.PI - 0.2);
+        ctx.stroke();
+        // Right eye
+        ctx.beginPath();
+        ctx.arc(faceX + 40, faceY - 20, 15, 0.2, Math.PI - 0.2);
+        ctx.stroke();
+
+        // Big happy smile
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(faceX, faceY + 10, 50, 0.2, Math.PI - 0.2);
+        ctx.stroke();
+
+        // Rosy cheeks
+        ctx.fillStyle = 'rgba(255, 150, 180, 0.6)';
+        ctx.beginPath();
+        ctx.arc(faceX - 70, faceY + 10, 20, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(faceX + 70, faceY + 10, 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Gills (extra happy and bouncy)
+        const gillBounce = Math.sin(this.cinematicTimer * 0.1) * 3;
+        for (let i = 0; i < 3; i++) {
+            // Left gills
+            ctx.strokeStyle = '#ff69b4';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(faceX - 100, faceY - 40 + (i * 15));
+            ctx.lineTo(faceX - 120 + gillBounce, faceY - 50 + (i * 15));
+            ctx.stroke();
+            // Right gills
+            ctx.beginPath();
+            ctx.moveTo(faceX + 100, faceY - 40 + (i * 15));
+            ctx.lineTo(faceX + 120 - gillBounce, faceY - 50 + (i * 15));
+            ctx.stroke();
+        }
+
+        // Draw bib
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.moveTo(faceX - 60, faceY + 80);
+        ctx.lineTo(faceX + 60, faceY + 80);
+        ctx.lineTo(faceX + 80, faceY + 150);
+        ctx.lineTo(faceX - 80, faceY + 150);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#cccccc';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Bib pattern (little dots)
+        ctx.fillStyle = '#ffb3d9';
+        for (let i = 0; i < 5; i++) {
+            ctx.beginPath();
+            ctx.arc(faceX - 40 + (i * 20), faceY + 110, 3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Draw knife (left side)
+        const knifeX = faceX - 140;
+        const knifeY = faceY + 100;
+        const knifeAngle = -0.3 + Math.sin(this.cinematicTimer * 0.05) * 0.1;
+        ctx.save();
+        ctx.translate(knifeX, knifeY);
+        ctx.rotate(knifeAngle);
+        // Handle
+        ctx.fillStyle = '#8b4513';
+        ctx.fillRect(-5, -40, 10, 40);
+        // Blade
+        ctx.fillStyle = '#c0c0c0';
+        ctx.beginPath();
+        ctx.moveTo(0, -40);
+        ctx.lineTo(-8, -80);
+        ctx.lineTo(8, -80);
+        ctx.closePath();
+        ctx.fill();
+        // Shine on blade
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(2, -75, 2, 30);
+        ctx.restore();
+
+        // Draw fork (right side)
+        const forkX = faceX + 140;
+        const forkY = faceY + 100;
+        const forkAngle = 0.3 + Math.sin(this.cinematicTimer * 0.05) * 0.1;
+        ctx.save();
+        ctx.translate(forkX, forkY);
+        ctx.rotate(forkAngle);
+        // Handle
+        ctx.fillStyle = '#8b4513';
+        ctx.fillRect(-5, -40, 10, 40);
+        // Prongs
+        ctx.fillStyle = '#c0c0c0';
+        for (let i = 0; i < 3; i++) {
+            ctx.fillRect(-10 + (i * 8), -80, 4, 40);
+        }
+        ctx.restore();
+
+        // Victory text
+        ctx.fillStyle = '#ffd700';
+        ctx.strokeStyle = '#ff8c00';
+        ctx.lineWidth = 4;
+        ctx.font = 'bold 48px monospace';
+        ctx.textAlign = 'center';
+
+        // Animated text
+        const textY = 80;
+        const textBounce = Math.sin(this.cinematicTimer * 0.1) * 5;
+        ctx.strokeText('VICTORY!', centerX, textY + textBounce);
+        ctx.fillText('VICTORY!', centerX, textY + textBounce);
+
+        // Subtitle
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px monospace';
+        ctx.fillText('The Axolotl Feasts!', centerX, textY + 50);
+
+        // Final score
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`Final Score: ${this.score}`, centerX, canvas.height - 60);
+
+        // Continue prompt
+        ctx.font = 'bold 16px monospace';
+        ctx.fillStyle = Math.sin(this.cinematicTimer * 0.2) > 0 ? '#ffffff' : '#888888';
+        ctx.fillText('Click to Return to Menu', centerX, canvas.height - 30);
+
+        ctx.textAlign = 'start';
+    }
+
     handleClick() {
         if (this.state === 'start') {
             // Resume audio context on first interaction (required by browsers)
@@ -2345,6 +2819,9 @@ class Game {
         } else if (this.state === 'showScoreboard') {
             this.reset();
             music.start(); // Restart music
+        } else if (this.state === 'victory') {
+            // Return to start screen after victory
+            this.state = 'start';
         } else if (this.state === 'playing') {
             this.bird.flap();
         }
@@ -2392,7 +2869,7 @@ class Game {
     reset() {
         this.bird = new Bird(50, 300);
         this.pipes = [];
-        this.score = 0;
+        this.score = 390; // Start at worm zone for testing
         this.state = 'playing';
         this.hearts = 3;
         this.invulnerable = false;
@@ -2431,7 +2908,7 @@ class Game {
 }
 
 const gravity = 0.38; // Reduced for slower, more underwater-like falling
-const jump = -8; // Smaller jumps for more controlled movement
+const jump = -7.5; // Smaller jumps for more controlled movement
 
 function playSound(frequency, duration) {
     const oscillator = audioContext.createOscillator();

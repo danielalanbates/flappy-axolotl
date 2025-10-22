@@ -1,0 +1,29 @@
+name: Unsigned Build (Test)
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build Linux unsigned
+        run: npm run build:linux
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-artifacts
+          path: dist/**
