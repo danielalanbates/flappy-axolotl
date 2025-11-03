@@ -165,3 +165,19 @@ This project is open source and available for personal and educational use.
 ---
 
 Enjoy swimming with the axolotl! 🦎💕
+
+
+---
+
+## License
+
+Copyright (c) 2025 Daniel Bates / BatesAI
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Copyright Notice
+
+While this code is open source under the MIT License, the BatesAI brand name and associated trademarks are proprietary. Please do not use the BatesAI name or logo without permission.
+
+For commercial support or custom development, contact: daniel@batesai.org
+
