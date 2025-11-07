@@ -2370,7 +2370,39 @@ class Game {
         this.pipes = [];
         this.score = 0;
         this.state = 'playing';
+        this.pipeSpawnDistance = 250;
+
+        // Reset power-up system
+        this.powerUps = [];
+        this.activePowerUp = null;
+        this.powerUpTimer = 0;
+        this.mermaid = null;
+        this.mermaidTimer = Math.random() * 500 + 300;
+        this.goldenHeart = null;
+
+        // Reset boss system
+        this.boss = null;
+        this.bossActive = false;
+        this.bossDefeated = false;
+        this.bossCount = 0;
+        this.persistentNets = [];
+        this.persistentWhirlpools = [];
+
+        // Reset power-up effects
+        this.hasStar = false;
+        this.pipeSpeed = 2.2;
+        this.basePipeSpeed = 2.2;
+        this.bird.width = this.originalBirdSize.width;
+        this.bird.height = this.originalBirdSize.height;
+        this.bird.color = this.originalBirdColor;
+        this.difficulty = 0;
+
+        // Reset ground scrolling
+        this.groundOffset = 0;
+
+        // Reset heart system
         this.hearts = 3;
+        this.maxHearts = 3;
         this.invulnerable = false;
         this.invulnerableTimer = 0;
     }
