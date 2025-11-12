@@ -1858,7 +1858,7 @@ class Game {
     constructor() {
         this.bird = new Bird(50, 300);
         this.pipes = [];
-        this.score = 390; // Start at worm zone for testing
+        this.score = 0;
         this.highScore = parseInt(localStorage.getItem('flappyAxolotlHighScore')) || 0;
         this.highScores = this.loadHighScores();
         this.state = 'start'; // 'start', 'playing', 'gameover', 'enterInitials'
